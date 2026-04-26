@@ -1,0 +1,417 @@
+\documentclass{sysupptthesis}
+
+\AddToHook{shipout/foreground}{\BackgroundPicture}
+\author{Wang Kaiqi}
+\title{Study of Radioactive Source Monitoring\\Based on ElasticNet Regression Method}
+\subtitle{Bachelor's Thesis Defense Report}
+\institute{Sino-French Institute of Nuclear Engineering and Technology, Sun Yat-sen University}
+\date{April 2026}
+
+\begin{document}
+
+% ============ Title Page ============
+\begin{frame}
+    \titlepage
+    \vspace*{-0.5cm}
+    \begin{center}
+        \Large\textbf{Sun Yat-sen University}\\[0.3em]
+        \normalsize Supervisors: Prof.\ Shi Wei (CityU HK) \& Prof.\ Wang Kai (SYSU)
+    \end{center}
+\end{frame}
+
+% ============ Outline ============
+\begin{frame}
+    \tableofcontents[sectionstyle=show,subsectionstyle=show/shaded/hide,subsubsectionstyle=show/shaded/hide]
+\end{frame}
+
+% ============================================================
+\section{Research Background \& Motivation}
+% ============================================================
+
+\begin{frame}{Research Background}
+    \begin{block}{Nuclear Facility Decommissioning}
+        \begin{itemize}
+            \item Global decommissioning projects increasing (Fukushima Daiichi, etc.)
+            \item IAEA: Accurate source distribution is prerequisite for optimized decommissioning
+            \item Ensuring personnel safety and minimizing waste generation
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Three-Dimensional Complexity in Confined Spaces}
+        \begin{itemize}
+            \item \textbf{Composite source types}: localized hot-spots + continuous activation zones + dispersed media
+            \item \textbf{Nuclide diversity}: $^{134}$Cs, $^{137}$Cs, $^{60}$Co, $^{131}$I with distinct energy spectra
+            \item \textbf{Measurement constraints}: limited detectors, limited time, dose exposure limits
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Problem Statement}
+    \begin{block}{The Inverse Problem}
+        \begin{itemize}
+            \item \textbf{Forward}: Given sources $\mathbf{s}$, predict detector readings $\mathbf{d}$
+            \item \textbf{Inverse}: Given readings $\mathbf{d}$, reconstruct sources $\mathbf{s}$
+        \end{itemize}
+    \end{block}
+
+    \defination{Mathematical Formulation}{
+        \vspace{0.3em}
+        \[
+            \mathbf{d} = A \cdot \mathbf{s} + \boldsymbol{\varepsilon}
+        \]
+        where $\mathbf{d}$ = measurements, $A$ = contribution matrix, $\mathbf{s}$ = source vector, $\boldsymbol{\varepsilon}$ = noise.
+    }
+
+    \begin{block}{Key Challenges}
+        \begin{itemize}
+            \item \textbf{Underdetermined}: fewer detectors than unknowns ($m \ll n$)
+            \item \textbf{Ill-posed}: noisy data leads to unstable solutions
+            \item \textbf{Mixed}: sparse hot spots + continuous activation regions
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+% ============================================================
+\section{Literature Review}
+% ============================================================
+
+\begin{frame}{Existing Methods and Limitations}
+    \begin{table}
+        \centering
+        \small
+        \begin{tabular}{cccccl}
+            \hline
+            \textbf{Method} & \textbf{Sparse} & \textbf{Continuous} & \textbf{Multi-nuclide} & \textbf{Speed} & \textbf{Core Limitation} \\
+            \hline
+            ML-EM/MPMI & Fair & Good & Poor & Slow & $O(n^3)$; noise sensitive \\
+            IRT-DEGL & Fair & Fair & Fair & V.Slow & Global optimization cost \\
+            LASSO & \textbf{Excellent} & Poor & Good & Fast & Over-compresses continuous \\
+            Fused LASSO & Fair & Good & Good & Medium & Needs neighborhood graph \\
+            \textbf{ElasticNet} & \textbf{Excellent} & \textbf{Excellent} & Good & Fast & Not yet applied to nuclear \\
+            \hline
+        \end{tabular}
+        \caption{Comparison of radioactive source reconstruction methods}
+    \end{table}
+\end{frame}
+
+\begin{frame}{Why ElasticNet?}
+    \begin{block}{Advantages over LASSO and Fused LASSO}
+        \begin{itemize}
+            \item LASSO: discrete/sparse distribution $\rightarrow$ precision loss for continuous regions
+            \item Fused LASSO: requires predefined neighborhood graph + ADMM convergence issues
+            \item ElasticNet: L1+L2 synergy without extra spatial constraints
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Cross-Domain Evidence}
+        \begin{itemize}
+            \item Nuclear medicine (SPECT): outperforms pure L1, L2, fixed-weight EN
+            \item XLCT imaging: superior localization + dual-source resolution
+            \item Fluorescence molecular tomography: 30\%+ error reduction
+        \end{itemize}
+    \end{block}
+
+    \theorem{Research Gap}{
+        ElasticNet has \textbf{not been applied} to nuclear radioactive source monitoring --- this thesis fills that gap.
+    }
+\end{frame}
+
+% ============================================================
+\section{Theoretical Basis}
+% ============================================================
+
+\begin{frame}{ElasticNet Regression Formulation}
+    \defination{Objective Function (Zou \& Hastie, 2005)}{
+        \vspace{0.3em}
+        \[
+            \min_{\mathbf{w}} \quad \| \mathbf{y} - X\mathbf{w} \|_2^2 + \alpha \left[ \rho \| \mathbf{w} \|_1 + \frac{1-\rho}{2} \| \mathbf{w} \|_2^2 \right]
+        \]
+    }
+
+    \begin{block}{L1 vs.\ L2 Penalty Roles}
+        \begin{itemize}
+            \item \textbf{L1} ($\rho \| \mathbf{w} \|_1$): promotes sparsity, drives irrelevant coefficients to zero $\rightarrow$ hot-spot localization
+            \item \textbf{L2} ($\frac{1-\rho}{2} \| \mathbf{w} \|_2^2$): groups correlated variables, suppresses oscillation $\rightarrow$ continuous region reconstruction
+            \item $\rho \to 1$: degrades to LASSO; \quad $\rho \to 0$: degrades to Ridge
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Key Properties}
+        \begin{itemize}
+            \item Strictly convex when $\lambda_2 > 0$ $\rightarrow$ unique global minimum guaranteed
+            \item No ADMM convergence issues (unlike Fused LASSO)
+            \item Solved by Coordinate Descent algorithm
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Physical Interpretation}
+    \begin{block}{L1 Penalty Physical Meaning}
+        \begin{itemize}
+            \item Count-type penalty on ``how many grid cells contain sources''
+            \item Solution tends toward few non-zero concentrated elements --- sparse hot-spot localization
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{L2 Penalty Physical Meaning}
+        \begin{itemize}
+            \item Suppresses individual coefficient amplitude, promotes neighboring cells to have similar values
+            \item Inside continuous activation regions: naturally smooth reconstruction (not ``discrete spots'' like LASSO)
+        \end{itemize}
+    \end{block}
+
+    \theorem{Synergy Effect}{
+        \begin{itemize}
+            \item Near sparse hotspots: L1 dominates $\rightarrow$ precise localization
+            \item Inside continuous regions: L2 dominates $\rightarrow$ smooth morphology
+            \item Transition zones: both cooperate $\rightarrow$ natural morphological transition
+        \end{itemize}
+    }
+\end{frame}
+
+% ============================================================
+\section{Algorithm Implementation \& Optimization}
+% ============================================================
+
+\begin{frame}{Algorithm Pipeline}
+    \begin{block}{Stage 1: Preprocessing}
+        \begin{itemize}
+            \item Column normalization: scale each column of $A$ to unit $L_2$ norm
+            \item Non-negative SVD matrix construction
+            \item Condition number assessment for adaptive $\alpha$ range
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Stage 2: ElasticNet Optimization}
+        \begin{itemize}
+            \item \texttt{ElasticNet(positive=True)} --- hard non-negativity constraint
+            \item GridSearchCV: $\alpha \in [10^{-7}, 10^{0}]$ (50 values), $\rho \in [0.01, 0.99]$ (80 values)
+            \item 5-fold cross-validation with negative MSE scoring
+            \item Custom intercept penalty for $|\beta_0 / \bar{y}| > 10\%$
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Stage 3: Post-processing}
+        \begin{itemize}
+            \item Denormalize: $\mathbf{w}_{\text{est}} = \mathbf{w}_{\text{norm}} \oslash \text{col\_norms}$
+            \item Non-negative truncation, intercept analysis
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Key Optimization Strategies}
+    \begin{block}{Adaptive $\alpha$ Search Range}
+        \begin{itemize}
+            \item cond $= 100$: $\alpha \in [10^{-6}, 10^{0}]$
+            \item cond $= 500$: $\alpha \in [10^{-5}, 10^{1}]$
+            \item cond $= 1000$: $\alpha \in [10^{-4}, 10^{2}]$
+            \item Optimal \texttt{l1\_ratio} $\approx 0.99$ $\rightarrow$ strong sparsity prior confirmed
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Non-negative Constraint Enhancement}
+        \begin{itemize}
+            \item \texttt{positive=True}: hard non-negative constraint
+            \item Non-negative SVD matrix construction eliminates negative response coefficients
+            \item ``Non-negativity + Sparse Selection + Smooth Anti-noise'' triple mechanism
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Intercept Fitting Analysis}
+        \begin{itemize}
+            \item $|\beta_0/\bar{y}| < 10\%$: improves generalization
+            \item $|\beta_0/\bar{y}| \gg 10\%$: reconstruction degrades
+            \item ElasticNet has an \textbf{upper limit of noise tolerance}
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+% ============================================================
+\section{PHITS Monte Carlo Simulation}
+% ============================================================
+
+\begin{frame}{PHITS Simulation Configuration}
+    \begin{block}{PHITS (JAEA): Monte Carlo Particle Transport}
+        \begin{itemize}
+            \item $10^8$ particles $\times$ 100 batches for statistical precision
+            \item Cs-137 point sources, 0.662 MeV $\gamma$-ray
+        \end{itemize}
+    \end{block}
+
+    \begin{table}
+        \centering
+        \small
+        \begin{tabular}{ll}
+            \hline
+            \textbf{Parameter} & \textbf{Value} \\
+            \hline
+            Simulation space & Spherical (R=10m, reactor-centered) \\
+            Radioactive sources & 10 Cs-137 point sources, 1 Ci each \\
+            Detectors & 8 spherical detectors (R=25mm) at $z=20$mm \\
+            Grid division & $4 \times 3 = 12$ cells \\
+            Medium & Air (N, O, Ar at standard density) \\
+            Contribution matrix & $8 \times 12$ (only 11/96 non-zero) \\
+            Matrix rank & 6/8 \\
+            \hline
+        \end{tabular}
+        \caption{PHITS simulation parameters}
+    \end{table}
+\end{frame}
+
+% ============================================================
+\section{Results \& Analysis}
+% ============================================================
+
+\begin{frame}{PHITS Validation Results}
+    \begin{block}{Best Parameters: $\alpha = 1.0 \times 10^{-6}$, \texttt{l1\_ratio} $= 0.99$, $R^2 = 0.463$}
+    \end{block}
+
+    \begin{table}
+        \centering
+        \small
+        \begin{tabular}{cccc}
+            \hline
+            \textbf{Cell} & \textbf{True Activity (GBq)} & \textbf{Estimate (GBq)} & \textbf{Rel.\ Error} \\
+            \hline
+            Cell 1  & $1.265 \times 10^{5}$ & $1.265 \times 10^{5}$ & \textbf{0.0\%} \\
+            Cell 5  & $5.266 \times 10^{4}$ & $3.93 \times 10^{2}$ & \textcolor{red}{99.3\%} \\
+            Cell 6  & $1.192 \times 10^{5}$ & $2.31 \times 10^{3}$ & \textcolor{red}{98.1\%} \\
+            Cell 7  & $5.894 \times 10^{4}$ & $5.894 \times 10^{4}$ & \textbf{0.0\%} \\
+            Cell 8  & $5.724 \times 10^{4}$ & $5.724 \times 10^{4}$ & \textbf{0.0\%} \\
+            Cell 9  & $4.870 \times 10^{4}$ & $4.870 \times 10^{4}$ & \textbf{0.0\%} \\
+            Cell 10 & $1.352 \times 10^{5}$ & $1.373 \times 10^{5}$ & \textbf{1.2\%} \\
+            \hline
+        \end{tabular}
+        \caption{7 non-zero cells detected, 5 with $<2\%$ error}
+    \end{table}
+\end{frame}
+
+\begin{frame}{Error Source Analysis}
+    \begin{block}{Cell 5 \& Cell 6 Failure --- Physical, Not Algorithmic}
+        \begin{itemize}
+            \item Cell 6: only Detector 1 responds, extremely weak signal ($10^{-9}$ level)
+            \item Cell 5: only Detector 5 responds, weak signal ($10^{-10}$ level)
+            \item Both overwhelmed by stronger responses from other cells
+        \end{itemize}
+    \end{block}
+
+    \theorem{Matrix Rank Analysis}{
+        \begin{itemize}
+            \item Numerical rank of $A$ = 6/8
+            \item Only 6 of 12 cells algebraically distinguishable
+            \item Physical indistinguishability from detector geometry, \textbf{not algorithm failure}
+        \end{itemize}
+    }
+
+    \begin{block}{Implication}
+        Improved detector layout would directly resolve these errors. ElasticNet is NOT the bottleneck.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Condition Number \& Bayesian Optimization}
+    \begin{block}{Difficulty Inflection Points at Cond $\approx$ 150 and 300}
+        \begin{itemize}
+            \item Not simply ``more ill-conditioned = harder'' --- critical spectral structure
+            \item All optimization strategies show diminishing returns at high condition numbers
+            \item Optimal \texttt{l1\_ratio} $\approx 0.99$ universally --- confirms strong sparsity prior
+        \end{itemize}
+    \end{block}
+
+    \begin{table}
+        \centering
+        \small
+        \begin{tabular}{lcc}
+            \hline
+            & \textbf{Grid Search} & \textbf{Bayesian Opt.} \\
+            \hline
+            Evaluations & 150--450 & 40 \\
+            Computation time & Baseline & $5\text{--}10\times$ faster \\
+            Accuracy (low cond) & Reference & Comparable \\
+            Accuracy (high cond) & \textbf{Higher ceiling} & Slightly worse \\
+            \hline
+        \end{tabular}
+        \caption{Grid search vs.\ Bayesian optimization --- complementary, not substitutive}
+    \end{table}
+\end{frame}
+
+% ============================================================
+\section{Conclusions \& Future Work}
+% ============================================================
+
+\begin{frame}{Conclusions}
+    \begin{block}{1. ElasticNet fills the application gap}
+        Effectively handles ``sparse + continuous'' composite source reconstruction in nuclear monitoring.
+    \end{block}
+
+    \begin{block}{2. Optimization strategies improve accuracy significantly}
+        Column normalization + adaptive $\alpha$ + non-negative constraint + intercept penalty.
+    \end{block}
+
+    \begin{block}{3. PHITS validation confirms practical value}
+        All 7 non-zero cells detected; 5 cells with $<2\%$ error.
+    \end{block}
+
+    \begin{block}{4. Bayesian optimization: complementary to grid search}
+        70--90\% computation savings; grid search has higher accuracy ceiling.
+    \end{block}
+\end{frame}
+
+\begin{frame}{Future Work}
+    \begin{block}{Mobile Detection Platforms (UGV / UAV)}
+        \begin{itemize}
+            \item Carry detectors for large-scale autonomous patrol
+            \item Richer contribution matrix $\rightarrow$ improved reconstruction stability
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Algorithm Improvements}
+        \begin{itemize}
+            \item Adaptive ElasticNet for automatic variable selection
+            \item Bayesian ElasticNet with uncertainty quantification
+            \item Deep learning + ElasticNet model cascade
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Extended Applications}
+        \begin{itemize}
+            \item Multi-energy source discrimination
+            \item 3D volumetric source reconstruction
+            \item Real-time online reconstruction system
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+% ============================================================
+\section{References}
+% ============================================================
+
+\begin{frame}[allowframebreaks]{References}
+    \small
+    \begin{thebibliography}{99}
+        \bibitem{tibshirani1996} Tibshirani R. Regression shrinkage and selection via the lasso. \textit{JRSS-B}, 1996.
+        \bibitem{hoerl1970} Hoerl \& Kennard. Ridge regression. \textit{Technometrics}, 1970.
+        \bibitem{sugaya2019} Sugaya et al. Inverse estimation for fuel debris search. \textit{ANE}, 2019.
+        \bibitem{shi2023a} Shi W et al. LASSO with spectral information. \textit{ANE}, 2023.
+        \bibitem{shi2023b} Shi W et al. LASSO: Theory and demonstration. \textit{PNE}, 2023.
+        \bibitem{yamada2024} Yamada et al. Fused LASSO for radioactive materials. \textit{WM2024}, 2024.
+        \bibitem{zou2005} Zou \& Hastie. Regularization via the elastic net. \textit{JRSS-B}, 2005.
+        \bibitem{kasai2025} Kasai \& Otsuka. Dynamic elastic net for nuclear medicine. \textit{J. Imaging}, 2025.
+        \bibitem{zhao2021} Zhao et al. Robust elastic net for XLCT. \textit{Phys. Med. Biol.}, 2021.
+        \bibitem{sato2018} Sato et al. PHITS version 3.02. \textit{JNST}, 2018.
+    \end{thebibliography}
+\end{frame}
+
+% ============================================================
+\section{Q \& A}
+% ============================================================
+
+\begin{frame}
+    \begin{center}
+        {\Huge\textbf{Questions \& Discussion}}\\[2em]
+        {\Large Thank you for your attention!}\\[1em]
+        {\normalsize Wang Kaiqi | 22355080}\\[0.3em]
+        {\small Supervisors: Prof.\ Shi Wei (CityU HK) \& Prof.\ Wang Kai (SYSU)}
+    \end{center}
+\end{frame}
+
+\end{document}
