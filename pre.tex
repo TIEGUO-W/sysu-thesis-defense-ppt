@@ -227,6 +227,65 @@
 \end{frame}
 
 % ============================================================
+\section{Algorithm Implementation \& Optimization}
+% ============================================================
+
+\begin{frame}{Algorithm Pipeline}
+    \begin{block}{Stage 1: Preprocessing}
+        \begin{itemize}
+            \item Column normalization: scale each column of $A$ to unit $L_2$ norm
+            \item Non-negative SVD matrix construction
+            \item Condition number assessment for adaptive $\alpha$ range
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Stage 2: ElasticNet Optimization}
+        \begin{itemize}
+            \item \texttt{ElasticNet(positive=True)} --- hard non-negativity constraint
+            \item GridSearchCV: $\alpha \in [10^{-7}, 10^{0}]$ (50 values), $\rho \in [0.01, 0.99]$ (80 values)
+            \item 5-fold cross-validation with negative MSE scoring
+            \item Custom intercept penalty for $|\beta_0 / \bar{y}| > 10\%$
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Stage 3: Post-processing}
+        \begin{itemize}
+            \item Denormalize: $\mathbf{w}_{\text{est}} = \mathbf{w}_{\text{norm}} \oslash \text{col\_norms}$
+            \item Non-negative truncation, intercept analysis
+        \end{itemize}
+    \end{block}
+\end{frame}
+
+\begin{frame}{Key Optimization: Column Normalization}
+    \begin{figure}
+        \includegraphics[width=0.65\textwidth]{fig/thesis/fig_04_p19.jpg}
+        \caption{Column normalization improves ElasticNet fitting: cond=100, 5 independent runs all achieve MSE=$10^{-4}$ to $10^{-9}$}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Non-negative SVD + Non-negative ElasticNet}
+    \begin{figure}
+        \includegraphics[width=0.65\textwidth]{fig/thesis/fig_06_p22.jpg}
+        \caption{Combined non-negative SVD matrix + non-negative ElasticNet optimization: Exp1/Exp3 reach MSE=$10^{-9}$}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Intercept Fitting Analysis}
+    \begin{columns}
+        \column{0.48\textwidth}
+        \begin{figure}
+            \includegraphics[width=\textwidth]{fig/thesis/fig_07_p23.jpg}
+            \caption{Good case: small intercept, accurate reconstruction}
+        \end{figure}
+        \column{0.48\textwidth}
+        \begin{figure}
+            \includegraphics[width=\textwidth]{fig/thesis/fig_08_p23.jpg}
+            \caption{Bad case: large intercept, degraded reconstruction}
+        \end{figure}
+    \end{columns}
+\end{frame}
+
+% ============================================================
 \section{PHITS Monte Carlo Simulation}
 % ============================================================
 
@@ -262,6 +321,26 @@
 \section{Results \& Analysis}
 % ============================================================
 
+\begin{frame}{Source-Detector Geometry}
+    \begin{columns}
+        \column{0.45\textwidth}
+        \begin{figure}
+            \includegraphics[width=\textwidth]{fig/thesis/fig_12_p27.jpg}
+            \caption{Grid division: 10 sources mapped to 12 cells, 8 detectors}
+        \end{figure}
+        \column{0.5\textwidth}
+        \begin{block}{Configuration}
+            \begin{itemize}
+                \item 10 Cs-137 point sources (1 Ci)
+                \item $4 \times 3 = 12$ grid cells
+                \item 8 spherical detectors (R=25mm)
+                \item 7 active cells, 5 empty
+                \item Matrix: $8 \times 12$, rank=6/8
+            \end{itemize}
+        \end{block}
+    \end{columns}
+\end{frame}
+
 \begin{frame}{PHITS Validation Results}
     \begin{block}{Best Parameters: $\alpha = 1.0 \times 10^{-6}$, \texttt{l1\_ratio} $= 0.99$, $R^2 = 0.463$}
     \end{block}
@@ -286,6 +365,21 @@
     \end{table}
 \end{frame}
 
+\begin{frame}{Reconstruction Visualization}
+    \begin{columns}
+        \column{0.5\textwidth}
+        \begin{figure}
+            \includegraphics[width=\textwidth]{fig/thesis/fig_14_p32.jpg}
+            \caption{True vs. estimated source distribution}
+        \end{figure}
+        \column{0.5\textwidth}
+        \begin{figure}
+            \includegraphics[width=\textwidth]{fig/thesis/fig_13_p30.jpg}
+            \caption{Contribution matrix heatmap (8$\times$12)}
+        \end{figure}
+    \end{columns}
+\end{frame}
+
 \begin{frame}{Error Source Analysis}
     \begin{block}{Cell 5 \& Cell 6 Failure --- Physical, Not Algorithmic}
         \begin{itemize}
@@ -306,6 +400,28 @@
     \begin{block}{Implication}
         Improved detector layout would directly resolve these errors. ElasticNet is NOT the bottleneck.
     \end{block}
+\end{frame}
+
+\begin{frame}{Condition Number Impact}
+    \begin{figure}
+        \includegraphics[width=0.7\textwidth]{fig/thesis/fig_16_p36.jpg}
+        \caption{Comparison of adaptive CV, segmented search, multi-segment grid, and fusion strategies}
+    \end{figure}
+\end{frame}
+
+\begin{frame}{Bayesian Optimization Results}
+    \begin{columns}
+        \column{0.48\textwidth}
+        \begin{figure}
+            \includegraphics[width=\textwidth]{fig/thesis/fig_17_p38.jpg}
+            \caption{Bayesian optimization: sparse source reconstruction}
+        \end{figure}
+        \column{0.48\textwidth}
+        \begin{figure}
+            \includegraphics[width=\textwidth]{fig/thesis/fig_21_p40.jpg}
+            \caption{Bayesian + PHITS Monte Carlo validation}
+        \end{figure}
+    \end{columns}
 \end{frame}
 
 \begin{frame}{Condition Number \& Bayesian Optimization}
