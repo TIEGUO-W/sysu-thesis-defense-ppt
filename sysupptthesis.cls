@@ -5,8 +5,8 @@
 
 \RequirePackage{fontspec}
 % Set fonts - use available fonts
-\setmainfont{TeX Gyre Termes}  % Times-like
-\setsansfont{TeX Gyre Termes}
+\setmainfont{Liberation Serif}  % Times-compatible
+\setsansfont{Liberation Serif}
 
 \RequirePackage{amsmath}
 \RequirePackage{hyperref}
