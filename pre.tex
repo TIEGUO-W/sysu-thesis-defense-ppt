@@ -24,46 +24,48 @@
     \tableofcontents[sectionstyle=show,subsectionstyle=show/shaded/hide,subsubsectionstyle=show/shaded/hide]
 \end{frame}
 
+% Override cls AtBeginSection — no auto TOC pages (they cause overfull)
+\AtBeginSection[]{}
+
 % ============================================================
-\section{Research Background \& Motivation}
+\section{Background \& Motivation}
 % ============================================================
 
 \begin{frame}{Research Background}
     \begin{block}{Nuclear Facility Decommissioning}
-        \begin{itemize}
+        \begin{itemize}\footnotesize
             \item Global decommissioning projects increasing (Fukushima Daiichi, etc.)
             \item IAEA: Accurate source distribution is prerequisite for optimized decommissioning
-            \item Ensuring personnel safety and minimizing waste generation
         \end{itemize}
     \end{block}
 
-    \begin{block}{Three-Dimensional Complexity in Confined Spaces}
-        \begin{itemize}
-            \item \textbf{Composite source types}: localized hot-spots + continuous activation zones + dispersed media
-            \item \textbf{Nuclide diversity}: $^{134}$Cs, $^{137}$Cs, $^{60}$Co, $^{131}$I with distinct energy spectra
-            \item \textbf{Measurement constraints}: limited detectors, limited time, dose exposure limits
+    \begin{block}{Three-Dimensional Complexity}
+        \begin{itemize}\footnotesize
+            \item \textbf{Composite sources}: localized hot-spots + continuous activation + dispersed media
+            \item \textbf{Nuclide diversity}: $^{134}$Cs, $^{137}$Cs, $^{60}$Co, $^{131}$I
+            \item \textbf{Constraints}: limited detectors, time, dose limits
+        \end{itemize}
+    \end{block}
+
+    \begin{block}{Core Challenge}
+        \begin{itemize}\footnotesize
+            \item The inverse reconstruction problem is both \textbf{underdetermined} ($m \ll n$) and \textbf{ill-posed}
+            \item A single method must handle sparse hotspots, continuous regions, and multi-nuclide discrimination
         \end{itemize}
     \end{block}
 \end{frame}
 
 \begin{frame}{Problem Statement}
-    \begin{block}{The Inverse Problem}
-        \begin{itemize}
-            \item \textbf{Forward}: Given sources $\mathbf{s}$, predict detector readings $\mathbf{d}$
-            \item \textbf{Inverse}: Given readings $\mathbf{d}$, reconstruct sources $\mathbf{s}$
-        \end{itemize}
-    \end{block}
-
     \defination{Mathematical Formulation}{
         \vspace{0.3em}
         \[
             \mathbf{d} = A \cdot \mathbf{s} + \boldsymbol{\varepsilon}
         \]
-        where $\mathbf{d}$ = measurements, $A$ = contribution matrix, $\mathbf{s}$ = source vector, $\boldsymbol{\varepsilon}$ = noise.
+        \centering\footnotesize $\mathbf{d}$: measurements \quad $A$: contribution matrix \quad $\mathbf{s}$: source vector \quad $\boldsymbol{\varepsilon}$: noise
     }
 
     \begin{block}{Key Challenges}
-        \begin{itemize}
+        \begin{itemize}\footnotesize
             \item \textbf{Underdetermined}: fewer detectors than unknowns ($m \ll n$)
             \item \textbf{Ill-posed}: noisy data leads to unstable solutions
             \item \textbf{Mixed}: sparse hot spots + continuous activation regions
@@ -81,13 +83,13 @@
         \small
         \begin{tabular}{cccccl}
             \hline
-            \textbf{Method} & \textbf{Sparse} & \textbf{Continuous} & \textbf{Multi-nuclide} & \textbf{Speed} & \textbf{Core Limitation} \\
+            \textbf{Method} & \textbf{Sparse} & \textbf{Continuous} & \textbf{Multi-n.} & \textbf{Speed} & \textbf{Core Limitation} \\
             \hline
             ML-EM/MPMI & Fair & Good & Poor & Slow & $O(n^3)$; noise sensitive \\
             IRT-DEGL & Fair & Fair & Fair & V.Slow & Global optimization cost \\
-            LASSO & \textbf{Excellent} & Poor & Good & Fast & Over-compresses continuous \\
-            Fused LASSO & Fair & Good & Good & Medium & Needs neighborhood graph \\
-            \textbf{ElasticNet} & \textbf{Excellent} & \textbf{Excellent} & Good & Fast & Not yet applied to nuclear \\
+            LASSO & \textbf{Exc.} & Poor & Good & Fast & Over-compresses continuous \\
+            Fused LASSO & Fair & Good & Good & Med. & Needs neighborhood graph \\
+            \textbf{ElasticNet} & \textbf{Exc.} & \textbf{Exc.} & Good & Fast & Not yet applied to nuclear \\
             \hline
         \end{tabular}
         \caption{Comparison of radioactive source reconstruction methods}
@@ -96,15 +98,15 @@
 
 \begin{frame}{Why ElasticNet?}
     \begin{block}{Advantages over LASSO and Fused LASSO}
-        \begin{itemize}
-            \item LASSO: discrete/sparse distribution $\rightarrow$ precision loss for continuous regions
-            \item Fused LASSO: requires predefined neighborhood graph + ADMM convergence issues
+        \begin{itemize}\footnotesize
+            \item LASSO: over-compresses continuous regions to discrete points
+            \item Fused LASSO: needs predefined neighborhood graph + ADMM convergence issues
             \item ElasticNet: L1+L2 synergy without extra spatial constraints
         \end{itemize}
     \end{block}
 
     \begin{block}{Cross-Domain Evidence}
-        \begin{itemize}
+        \begin{itemize}\footnotesize
             \item Nuclear medicine (SPECT): outperforms pure L1, L2, fixed-weight EN
             \item XLCT imaging: superior localization + dual-source resolution
             \item Fluorescence molecular tomography: 30\%+ error reduction
@@ -112,7 +114,7 @@
     \end{block}
 
     \theorem{Research Gap}{
-        ElasticNet has \textbf{not been applied} to nuclear radioactive source monitoring --- this thesis fills that gap.
+        \small ElasticNet has \textbf{not been applied} to nuclear radioactive source monitoring --- this thesis fills that gap.
     }
 \end{frame}
 
@@ -129,53 +131,48 @@
     }
 
     \begin{block}{L1 vs.\ L2 Penalty Roles}
-        \begin{itemize}
-            \item \textbf{L1} ($\rho \| \mathbf{w} \|_1$): promotes sparsity, drives irrelevant coefficients to zero $\rightarrow$ hot-spot localization
-            \item \textbf{L2} ($\frac{1-\rho}{2} \| \mathbf{w} \|_2^2$): groups correlated variables, suppresses oscillation $\rightarrow$ continuous region reconstruction
-            \item $\rho \to 1$: degrades to LASSO; \quad $\rho \to 0$: degrades to Ridge
+        \begin{itemize}\footnotesize
+            \item \textbf{L1}: promotes sparsity $\rightarrow$ hot-spot localization
+            \item \textbf{L2}: groups correlated variables, suppresses oscillation $\rightarrow$ continuous reconstruction
+            \item $\rho \to 1$: LASSO; \quad $\rho \to 0$: Ridge
         \end{itemize}
     \end{block}
 
     \begin{block}{Key Properties}
-        \begin{itemize}
-            \item Strictly convex when $\lambda_2 > 0$ $\rightarrow$ unique global minimum guaranteed
-            \item No ADMM convergence issues (unlike Fused LASSO)
-            \item Solved by Coordinate Descent algorithm
+        \begin{itemize}\footnotesize
+            \item Strictly convex when $\lambda_2 > 0$ $\rightarrow$ unique global minimum
+            \item Solved by Coordinate Descent; no ADMM convergence issues
         \end{itemize}
     \end{block}
 \end{frame}
 
 \begin{frame}{Physical Interpretation}
-    \begin{block}{L1 Penalty Physical Meaning}
-        \begin{itemize}
+    \begin{block}{L1: Sparse Hot-Spot Localization}
+        \begin{itemize}\footnotesize
             \item Count-type penalty on ``how many grid cells contain sources''
-            \item Solution tends toward few non-zero concentrated elements --- sparse hot-spot localization
+            \item Drives irrelevant coefficients to exact zero
         \end{itemize}
     \end{block}
 
-    \begin{block}{L2 Penalty Physical Meaning}
-        \begin{itemize}
-            \item Suppresses individual coefficient amplitude, promotes neighboring cells to have similar values
-            \item Inside continuous activation regions: naturally smooth reconstruction (not ``discrete spots'' like LASSO)
+    \begin{block}{L2: Continuous Region Smoothing}
+        \begin{itemize}\footnotesize
+            \item Suppresses individual amplitude, promotes neighboring cells to have similar values
+            \item Preserves continuous region morphology (not ``discrete spots'' like LASSO)
         \end{itemize}
     \end{block}
 
     \theorem{Synergy Effect}{
-        \begin{itemize}
-            \item Near sparse hotspots: L1 dominates $\rightarrow$ precise localization
-            \item Inside continuous regions: L2 dominates $\rightarrow$ smooth morphology
-            \item Transition zones: both cooperate $\rightarrow$ natural morphological transition
-        \end{itemize}
+        \small Near hotspots: L1 dominates $\rightarrow$ precise localization.\ Inside continuous regions: L2 dominates $\rightarrow$ smooth morphology.\ Transition zones: both cooperate.
     }
 \end{frame}
 
 % ============================================================
-\section{Algorithm Implementation \& Optimization}
+\section{Algorithm \& Optimization}
 % ============================================================
 
 \begin{frame}{Algorithm Pipeline}
     \begin{block}{Stage 1: Preprocessing}
-        \begin{itemize}
+        \begin{itemize}\footnotesize
             \item Column normalization: scale each column of $A$ to unit $L_2$ norm
             \item Non-negative SVD matrix construction
             \item Condition number assessment for adaptive $\alpha$ range
@@ -183,90 +180,32 @@
     \end{block}
 
     \begin{block}{Stage 2: ElasticNet Optimization}
-        \begin{itemize}
+        \begin{itemize}\footnotesize
             \item \texttt{ElasticNet(positive=True)} --- hard non-negativity constraint
-            \item GridSearchCV: $\alpha \in [10^{-7}, 10^{0}]$ (50 values), $\rho \in [0.01, 0.99]$ (80 values)
-            \item 5-fold cross-validation with negative MSE scoring
+            \item GridSearchCV: $\alpha$ (50 values), $\rho$ (80 values), 5-fold CV
             \item Custom intercept penalty for $|\beta_0 / \bar{y}| > 10\%$
         \end{itemize}
     \end{block}
 
     \begin{block}{Stage 3: Post-processing}
-        \begin{itemize}
+        \begin{itemize}\footnotesize
             \item Denormalize: $\mathbf{w}_{\text{est}} = \mathbf{w}_{\text{norm}} \oslash \text{col\_norms}$
-            \item Non-negative truncation, intercept analysis
-        \end{itemize}
-    \end{block}
-\end{frame}
-
-\begin{frame}{Key Optimization Strategies}
-    \begin{block}{Adaptive $\alpha$ Search Range}
-        \begin{itemize}
-            \item cond $= 100$: $\alpha \in [10^{-6}, 10^{0}]$
-            \item cond $= 500$: $\alpha \in [10^{-5}, 10^{1}]$
-            \item cond $= 1000$: $\alpha \in [10^{-4}, 10^{2}]$
-            \item Optimal \texttt{l1\_ratio} $\approx 0.99$ $\rightarrow$ strong sparsity prior confirmed
-        \end{itemize}
-    \end{block}
-
-    \begin{block}{Non-negative Constraint Enhancement}
-        \begin{itemize}
-            \item \texttt{positive=True}: hard non-negative constraint
-            \item Non-negative SVD matrix construction eliminates negative response coefficients
-            \item ``Non-negativity + Sparse Selection + Smooth Anti-noise'' triple mechanism
-        \end{itemize}
-    \end{block}
-
-    \begin{block}{Intercept Fitting Analysis}
-        \begin{itemize}
-            \item $|\beta_0/\bar{y}| < 10\%$: improves generalization
-            \item $|\beta_0/\bar{y}| \gg 10\%$: reconstruction degrades
-            \item ElasticNet has an \textbf{upper limit of noise tolerance}
-        \end{itemize}
-    \end{block}
-\end{frame}
-
-% ============================================================
-\section{Algorithm Implementation \& Optimization}
-% ============================================================
-
-\begin{frame}{Algorithm Pipeline}
-    \begin{block}{Stage 1: Preprocessing}
-        \begin{itemize}
-            \item Column normalization: scale each column of $A$ to unit $L_2$ norm
-            \item Non-negative SVD matrix construction
-            \item Condition number assessment for adaptive $\alpha$ range
-        \end{itemize}
-    \end{block}
-
-    \begin{block}{Stage 2: ElasticNet Optimization}
-        \begin{itemize}
-            \item \texttt{ElasticNet(positive=True)} --- hard non-negativity constraint
-            \item GridSearchCV: $\alpha \in [10^{-7}, 10^{0}]$ (50 values), $\rho \in [0.01, 0.99]$ (80 values)
-            \item 5-fold cross-validation with negative MSE scoring
-            \item Custom intercept penalty for $|\beta_0 / \bar{y}| > 10\%$
-        \end{itemize}
-    \end{block}
-
-    \begin{block}{Stage 3: Post-processing}
-        \begin{itemize}
-            \item Denormalize: $\mathbf{w}_{\text{est}} = \mathbf{w}_{\text{norm}} \oslash \text{col\_norms}$
-            \item Non-negative truncation, intercept analysis
+            \item Non-negative truncation, intercept analysis, evaluation metrics
         \end{itemize}
     \end{block}
 \end{frame}
 
 \begin{frame}{Key Optimization: Column Normalization}
     \begin{figure}
-        \includegraphics[width=0.65\textwidth]{fig/thesis/fig_04_p19.jpg}
-        \caption{Column normalization improves ElasticNet fitting: cond=100, 5 independent runs all achieve MSE=$10^{-4}$ to $10^{-9}$}
+        \includegraphics[width=0.62\textwidth]{fig/thesis/fig_04_p19.jpg}
+        \caption{Column normalization: cond=100, 5 runs all achieve MSE=$10^{-4}$ to $10^{-9}$}
     \end{figure}
 \end{frame}
 
 \begin{frame}{Non-negative SVD + Non-negative ElasticNet}
     \begin{figure}
-        \includegraphics[width=0.65\textwidth]{fig/thesis/fig_06_p22.jpg}
-        \caption{Combined non-negative SVD matrix + non-negative ElasticNet optimization: Exp1/Exp3 reach MSE=$10^{-9}$}
+        \includegraphics[width=0.62\textwidth]{fig/thesis/fig_06_p22.jpg}
+        \caption{Non-negative SVD + non-negative EN: Exp1/Exp3 reach MSE=$10^{-9}$}
     \end{figure}
 \end{frame}
 
@@ -275,40 +214,37 @@
         \column{0.48\textwidth}
         \begin{figure}
             \includegraphics[width=\textwidth]{fig/thesis/fig_07_p23.jpg}
-            \caption{Good case: small intercept, accurate reconstruction}
+            \caption{Good case: small intercept}
         \end{figure}
         \column{0.48\textwidth}
         \begin{figure}
             \includegraphics[width=\textwidth]{fig/thesis/fig_08_p23.jpg}
-            \caption{Bad case: large intercept, degraded reconstruction}
+            \caption{Bad case: large intercept}
         \end{figure}
     \end{columns}
 \end{frame}
 
 % ============================================================
-\section{PHITS Monte Carlo Simulation}
+\section{PHITS Simulation}
 % ============================================================
 
 \begin{frame}{PHITS Simulation Configuration}
     \begin{block}{PHITS (JAEA): Monte Carlo Particle Transport}
-        \begin{itemize}
-            \item $10^8$ particles $\times$ 100 batches for statistical precision
-            \item Cs-137 point sources, 0.662 MeV $\gamma$-ray
+        \begin{itemize}\footnotesize
+            \item $10^8$ particles $\times$ 100 batches; Cs-137, 0.662 MeV $\gamma$-ray
         \end{itemize}
     \end{block}
 
     \begin{table}
-        \centering
-        \small
+        \centering\footnotesize
         \begin{tabular}{ll}
             \hline
             \textbf{Parameter} & \textbf{Value} \\
             \hline
             Simulation space & Spherical (R=10m, reactor-centered) \\
             Radioactive sources & 10 Cs-137 point sources, 1 Ci each \\
-            Detectors & 8 spherical detectors (R=25mm) at $z=20$mm \\
+            Detectors & 8 spherical detectors (R=25mm) \\
             Grid division & $4 \times 3 = 12$ cells \\
-            Medium & Air (N, O, Ar at standard density) \\
             Contribution matrix & $8 \times 12$ (only 11/96 non-zero) \\
             Matrix rank & 6/8 \\
             \hline
@@ -323,34 +259,33 @@
 
 \begin{frame}{Source-Detector Geometry}
     \begin{columns}
-        \column{0.45\textwidth}
+        \column{0.4\textwidth}
         \begin{figure}
-            \includegraphics[width=\textwidth]{fig/thesis/fig_12_p27.jpg}
-            \caption{Grid division: 10 sources mapped to 12 cells, 8 detectors}
+            \includegraphics[width=0.95\textwidth]{fig/thesis/fig_12_p27.jpg}
+            \caption{10 sources → 12 cells}
         \end{figure}
-        \column{0.5\textwidth}
-        \begin{block}{Configuration}
-            \begin{itemize}
-                \item 10 Cs-137 point sources (1 Ci)
-                \item $4 \times 3 = 12$ grid cells
-                \item 8 spherical detectors (R=25mm)
-                \item 7 active cells, 5 empty
-                \item Matrix: $8 \times 12$, rank=6/8
-            \end{itemize}
-        \end{block}
+        \column{0.55\textwidth}
+        \begin{itemize}\footnotesize
+            \item 10 Cs-137 point sources (1 Ci)
+            \item $4 \times 3 = 12$ grid cells
+            \item 8 spherical detectors (R=25mm)
+            \item 7 active cells, 5 empty
+            \item Matrix: $8 \times 12$, rank=6/8
+        \end{itemize}
     \end{columns}
 \end{frame}
 
 \begin{frame}{PHITS Validation Results}
-    \begin{block}{Best Parameters: $\alpha = 1.0 \times 10^{-6}$, \texttt{l1\_ratio} $= 0.99$, $R^2 = 0.463$}
-    \end{block}
+    {\small Best: $\alpha = 10^{-6}$, \texttt{l1\_ratio} $= 0.99$, $R^2 = 0.463$ \\[0.3em]
+    7 non-zero cells detected, 5 with $<2\%$ error}
 
+    \vspace{0.5em}
     \begin{table}
-        \centering
-        \small
+        \centering\scriptsize
+        \setlength{\tabcolsep}{4pt}
         \begin{tabular}{cccc}
             \hline
-            \textbf{Cell} & \textbf{True Activity (GBq)} & \textbf{Estimate (GBq)} & \textbf{Rel.\ Error} \\
+            \textbf{Cell} & \textbf{True (GBq)} & \textbf{Estimate (GBq)} & \textbf{Error} \\
             \hline
             Cell 1  & $1.265 \times 10^{5}$ & $1.265 \times 10^{5}$ & \textbf{0.0\%} \\
             Cell 5  & $5.266 \times 10^{4}$ & $3.93 \times 10^{2}$ & \textcolor{red}{99.3\%} \\
@@ -361,7 +296,6 @@
             Cell 10 & $1.352 \times 10^{5}$ & $1.373 \times 10^{5}$ & \textbf{1.2\%} \\
             \hline
         \end{tabular}
-        \caption{7 non-zero cells detected, 5 with $<2\%$ error}
     \end{table}
 \end{frame}
 
@@ -370,42 +304,37 @@
         \column{0.5\textwidth}
         \begin{figure}
             \includegraphics[width=\textwidth]{fig/thesis/fig_14_p32.jpg}
-            \caption{True vs. estimated source distribution}
+            \caption{True vs.\ estimated distribution}
         \end{figure}
         \column{0.5\textwidth}
         \begin{figure}
             \includegraphics[width=\textwidth]{fig/thesis/fig_13_p30.jpg}
-            \caption{Contribution matrix heatmap (8$\times$12)}
+            \caption{Contribution matrix heatmap}
         \end{figure}
     \end{columns}
 \end{frame}
 
 \begin{frame}{Error Source Analysis}
-    \begin{block}{Cell 5 \& Cell 6 Failure --- Physical, Not Algorithmic}
-        \begin{itemize}
-            \item Cell 6: only Detector 1 responds, extremely weak signal ($10^{-9}$ level)
+    \begin{block}{Cell 5 \& 6 Failure --- Physical, Not Algorithmic}
+        \begin{itemize}\footnotesize
+            \item Cell 6: only Detector 1 responds, weak signal ($10^{-9}$ level)
             \item Cell 5: only Detector 5 responds, weak signal ($10^{-10}$ level)
-            \item Both overwhelmed by stronger responses from other cells
         \end{itemize}
     \end{block}
 
     \theorem{Matrix Rank Analysis}{
-        \begin{itemize}
-            \item Numerical rank of $A$ = 6/8
-            \item Only 6 of 12 cells algebraically distinguishable
-            \item Physical indistinguishability from detector geometry, \textbf{not algorithm failure}
-        \end{itemize}
+        \small Rank of $A$ = 6/8. Only 6 of 12 cells algebraically distinguishable. Physical indistinguishability from detector geometry, \textbf{not algorithm failure}.
     }
 
     \begin{block}{Implication}
-        Improved detector layout would directly resolve these errors. ElasticNet is NOT the bottleneck.
+        \small Improved detector layout would resolve these errors. ElasticNet is NOT the bottleneck.
     \end{block}
 \end{frame}
 
 \begin{frame}{Condition Number Impact}
     \begin{figure}
-        \includegraphics[width=0.7\textwidth]{fig/thesis/fig_16_p36.jpg}
-        \caption{Comparison of adaptive CV, segmented search, multi-segment grid, and fusion strategies}
+        \includegraphics[width=0.58\textwidth]{fig/thesis/fig_16_p36.jpg}
+        \caption{Comparison of adaptive CV, segmented search, and fusion strategies}
     \end{figure}
 \end{frame}
 
@@ -414,39 +343,37 @@
         \column{0.48\textwidth}
         \begin{figure}
             \includegraphics[width=\textwidth]{fig/thesis/fig_17_p38.jpg}
-            \caption{Bayesian optimization: sparse source reconstruction}
+            \caption{Bayesian opt.: sparse source}
         \end{figure}
         \column{0.48\textwidth}
         \begin{figure}
             \includegraphics[width=\textwidth]{fig/thesis/fig_21_p40.jpg}
-            \caption{Bayesian + PHITS Monte Carlo validation}
+            \caption{Bayesian + PHITS validation}
         \end{figure}
     \end{columns}
 \end{frame}
 
-\begin{frame}{Condition Number \& Bayesian Optimization}
+\begin{frame}{Grid Search vs.\ Bayesian Optimization}
     \begin{block}{Difficulty Inflection Points at Cond $\approx$ 150 and 300}
-        \begin{itemize}
-            \item Not simply ``more ill-conditioned = harder'' --- critical spectral structure
-            \item All optimization strategies show diminishing returns at high condition numbers
+        \begin{itemize}\footnotesize
+            \item Not ``more ill-conditioned = harder'' --- critical spectral structure matters
             \item Optimal \texttt{l1\_ratio} $\approx 0.99$ universally --- confirms strong sparsity prior
         \end{itemize}
     \end{block}
 
     \begin{table}
-        \centering
-        \small
+        \centering\footnotesize
         \begin{tabular}{lcc}
             \hline
             & \textbf{Grid Search} & \textbf{Bayesian Opt.} \\
             \hline
             Evaluations & 150--450 & 40 \\
-            Computation time & Baseline & $5\text{--}10\times$ faster \\
+            Speed & Baseline & $5\text{--}10\times$ faster \\
             Accuracy (low cond) & Reference & Comparable \\
             Accuracy (high cond) & \textbf{Higher ceiling} & Slightly worse \\
             \hline
         \end{tabular}
-        \caption{Grid search vs.\ Bayesian optimization --- complementary, not substitutive}
+        \caption{Complementary, not substitutive}
     \end{table}
 \end{frame}
 
@@ -456,32 +383,31 @@
 
 \begin{frame}{Conclusions}
     \begin{block}{1. ElasticNet fills the application gap}
-        Effectively handles ``sparse + continuous'' composite source reconstruction in nuclear monitoring.
+        \small Effectively handles ``sparse + continuous'' composite source reconstruction.
     \end{block}
 
-    \begin{block}{2. Optimization strategies improve accuracy significantly}
-        Column normalization + adaptive $\alpha$ + non-negative constraint + intercept penalty.
+    \begin{block}{2. Optimization strategies improve accuracy}
+        \small Column normalization + adaptive $\alpha$ + non-negative constraint + intercept penalty.
     \end{block}
 
     \begin{block}{3. PHITS validation confirms practical value}
-        All 7 non-zero cells detected; 5 cells with $<2\%$ error.
+        \small All 7 non-zero cells detected; 5 cells with $<2\%$ error.
     \end{block}
 
     \begin{block}{4. Bayesian optimization: complementary to grid search}
-        70--90\% computation savings; grid search has higher accuracy ceiling.
+        \small 70--90\% computation savings; grid search has higher accuracy ceiling.
     \end{block}
 \end{frame}
 
 \begin{frame}{Future Work}
     \begin{block}{Mobile Detection Platforms (UGV / UAV)}
-        \begin{itemize}
-            \item Carry detectors for large-scale autonomous patrol
-            \item Richer contribution matrix $\rightarrow$ improved reconstruction stability
+        \begin{itemize}\footnotesize
+            \item Autonomous patrol $\rightarrow$ richer contribution matrix $\rightarrow$ improved stability
         \end{itemize}
     \end{block}
 
     \begin{block}{Algorithm Improvements}
-        \begin{itemize}
+        \begin{itemize}\footnotesize
             \item Adaptive ElasticNet for automatic variable selection
             \item Bayesian ElasticNet with uncertainty quantification
             \item Deep learning + ElasticNet model cascade
@@ -489,9 +415,8 @@
     \end{block}
 
     \begin{block}{Extended Applications}
-        \begin{itemize}
-            \item Multi-energy source discrimination
-            \item 3D volumetric source reconstruction
+        \begin{itemize}\footnotesize
+            \item Multi-energy source discrimination \& 3D volumetric reconstruction
             \item Real-time online reconstruction system
         \end{itemize}
     \end{block}
